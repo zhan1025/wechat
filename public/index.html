@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>局域网聊天室</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header>
+    <h1>局域网聊天室</h1>
+  </header>
+  <section id="content">
+
+  </section>
+  <footer>
+    <input type="text" placeholder="请输入聊天内容" id="msg">
+    <button id="send" >发送</button>
+  </footer>
+</body>
+  <script>
+  window.onload = () => {
+    //创建连接接webscoket服务器
+    let ws = new WebSocket('ws://10.36.132.212:8080');
+    // 获取内容框dom元素
+    let content = document.getElementById('content');
+    // 滚动条
+    let scrollbar = () => {
+      let sHeight = content.scrollHeight;
+      let oHeight = document.documentElement.offsetHeight;
+      content.scrollTop = sHeight - oHeight;
+      }
+    // open事件，就是连接打开了
+    ws.onopen = () => {};
+
+    // 接收到服务端传递过来的消息
+    ws.onmessage = function(event) {
+        // 参数是一个事件对象，具体的消息内容，需要在 event.data
+      let data = JSON.parse(event.data);
+
+      // 判断是欢迎词，还是用户发送的消息
+      if (typeof data === 'string'){
+        content.innerHTML += `<div class="tip">${data}</div>`
+      }else{
+        content.innerHTML += `<span>${data.name}：<div>${data.msg}</div></span>`
+      }
+      scrollbar()
+      };
+      // 发送信息
+      function send () {
+        let input = document.getElementById('msg');
+        let msg = input.value;
+        content.innerHTML += `<p class="right">${msg}                 <span>:我</span></p>`
+        ws.send(msg)
+        input.value = ''
+        scrollbar()
+      }
+    document.getElementById('send').onclick = send;
+    document.onkeyup = (e) => {
+      if(e.keyCode === 13) {
+        send();
+      }
+    }
+  }
+
+  </script>
+</html>
